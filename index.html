@@ -1,0 +1,1517 @@
+<!DOCTYPE html>
+<html lang="ko" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Vital | 건강 루틴 & 데일리 영양제 복용 매니저</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Pretendard 폰트 -->
+    <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+    <!-- Canvas Confetti -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Pretendard', '-apple-system', 'BlinkMacSystemFont', 'system-ui', 'Roboto', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            200: '#bbf7d0',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b',
+                        },
+                        pill: {
+                            morning: '#f59e0b',
+                            afternoon: '#0ea5e9',
+                            night: '#8b5cf6'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Pretendard', sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+        .routine-card {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .routine-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+        }
+        .checkbox-custom {
+            appearance: none;
+            width: 1.35rem;
+            height: 1.35rem;
+            border: 2px solid #cbd5e1;
+            border-radius: 0.45rem;
+            outline: none;
+            transition: all 0.2s;
+            cursor: pointer;
+            position: relative;
+            background-color: white;
+        }
+        .checkbox-custom:checked {
+            background-color: #10b981;
+            border-color: #10b981;
+        }
+        .checkbox-custom:checked::after {
+            content: '\f00c';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            color: white;
+            font-size: 0.8rem;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .pill-checkbox:checked {
+            background-color: #ec4899;
+            border-color: #ec4899;
+        }
+        .completed-item {
+            opacity: 0.6;
+            text-decoration: line-through;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col antialiased selection:bg-brand-500 selection:text-white">
+
+    <!-- Top Navigation / Header -->
+    <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-200 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-teal-400 flex items-center justify-center text-white shadow-md shadow-brand-500/20">
+                    <i class="fa-solid fa-heart-pulse text-lg"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-slate-800 tracking-tight flex items-center gap-2">
+                        Daily Vital
+                        <span class="text-xs px-2 py-0.5 rounded-full bg-brand-50 text-brand-700 font-semibold border border-brand-200">건강 & 영양제 루틴</span>
+                    </h1>
+                    <p class="text-xs text-slate-500 hidden sm:block">식사 · 영양제 복용 체크 · 운동 · 수면 관리</p>
+                </div>
+            </div>
+
+            <!-- Header Quick Actions -->
+            <div class="flex items-center space-x-2 sm:space-x-4">
+                <!-- Gender Selector -->
+                <div class="bg-slate-100 p-1 rounded-xl flex items-center text-xs font-semibold">
+                    <button id="gender-all-btn" onclick="setGender('all')" class="px-2.5 py-1.5 rounded-lg transition-all gender-btn bg-white text-slate-800 shadow-sm">
+                        <i class="fa-solid fa-users mr-1"></i>공통
+                    </button>
+                    <button id="gender-male-btn" onclick="setGender('male')" class="px-2.5 py-1.5 rounded-lg transition-all gender-btn text-slate-600 hover:text-blue-600">
+                        <i class="fa-solid fa-mars mr-1 text-blue-500"></i>남성용
+                    </button>
+                    <button id="gender-female-btn" onclick="setGender('female')" class="px-2.5 py-1.5 rounded-lg transition-all gender-btn text-slate-600 hover:text-rose-600">
+                        <i class="fa-solid fa-venus mr-1 text-rose-500"></i>여성용
+                    </button>
+                </div>
+
+                <!-- Reset Button -->
+                <button onclick="resetTodayChecklist()" title="오늘의 체크리스트 초기화" class="p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-all text-sm flex items-center gap-1.5 border border-slate-200">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span class="hidden md:inline text-xs font-medium">초기화</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-8">
+
+        <!-- Top Hero: Date & Progress & Streak -->
+        <section class="bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-950 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
+            <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute right-1/3 -top-12 w-48 h-48 bg-teal-500/10 rounded-full blur-2xl pointer-events-none"></div>
+
+            <div class="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
+                <!-- Left: Date & Motivation -->
+                <div class="lg:col-span-7 space-y-3">
+                    <div class="flex items-center gap-2 flex-wrap">
+                        <span class="px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-medium flex items-center gap-1.5">
+                            <i class="fa-regular fa-calendar-check"></i> <span id="display-date">2026.08.19 (수)</span>
+                        </span>
+                        <span id="gender-tag" class="px-2.5 py-0.5 rounded-full bg-slate-700/80 text-slate-300 text-xs">
+                            공통 맞춤형 루틴
+                        </span>
+                    </div>
+                    <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight leading-snug">
+                        오늘도 잊지 않고 <span class="text-emerald-400">영양제 & 건강 루틴</span>을<br class="hidden sm:inline"> 체크해 보세요!
+                    </h2>
+                    <p id="motivational-quote" class="text-sm text-slate-300 leading-relaxed font-light">
+                        "제때 챙겨 먹는 균형 식사, 타이밍 맞춘 영양제, 50분 운동과 7.5시간 숙면이 최고의 보약입니다."
+                    </p>
+                    
+                    <!-- Date Quick Navigator -->
+                    <div class="flex items-center gap-2 pt-2 text-xs">
+                        <button onclick="changeDate(-1)" class="px-2.5 py-1 rounded bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-slate-300 transition">
+                            <i class="fa-solid fa-chevron-left mr-1"></i>어제
+                        </button>
+                        <button onclick="changeDate(0)" class="px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-semibold transition">
+                            오늘
+                        </button>
+                        <button onclick="changeDate(1)" class="px-2.5 py-1 rounded bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-slate-300 transition">
+                            내일<i class="fa-solid fa-chevron-right ml-1"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right: Daily Progress Card -->
+                <div class="lg:col-span-5 bg-white/10 backdrop-blur-md rounded-2xl p-5 border border-white/10 space-y-4">
+                    <div class="flex justify-between items-end">
+                        <div>
+                            <span class="text-xs uppercase tracking-wider text-slate-300 font-semibold">오늘의 종합 루틴 달성률</span>
+                            <div class="text-3xl sm:text-4xl font-black text-emerald-400 mt-1 flex items-baseline gap-1">
+                                <span id="progress-percent">0</span>%
+                                <span id="progress-counts" class="text-xs text-slate-300 font-normal">(0/0 완료)</span>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs text-pink-300 block font-semibold"><i class="fa-solid fa-pills mr-1"></i>영양제 복용률</span>
+                            <span class="text-lg font-bold text-pink-300 flex items-center justify-end gap-1 mt-0.5">
+                                <span id="pill-progress-text">0/0 완료</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Progress Bar Track -->
+                    <div class="w-full bg-slate-700/60 rounded-full h-3.5 overflow-hidden p-0.5 border border-white/5">
+                        <div id="progress-bar-fill" class="bg-gradient-to-r from-teal-400 to-emerald-400 h-full rounded-full transition-all duration-500 ease-out" style="width: 0%;"></div>
+                    </div>
+
+                    <!-- Status Badges for 4 Pillars -->
+                    <div class="grid grid-cols-4 gap-2 text-center text-[11px] pt-1">
+                        <div class="bg-slate-800/60 rounded-lg py-1.5 px-1 border border-white/5">
+                            <i class="fa-solid fa-utensils text-emerald-400 block mb-0.5"></i>
+                            <span class="text-slate-300">식사</span>
+                            <span id="badge-diet" class="block font-bold text-slate-400">0/3</span>
+                        </div>
+                        <div class="bg-pink-950/40 rounded-lg py-1.5 px-1 border border-pink-500/30">
+                            <i class="fa-solid fa-pills text-pink-400 block mb-0.5"></i>
+                            <span class="text-pink-200 font-semibold">영양제</span>
+                            <span id="badge-supp" class="block font-bold text-pink-400">0/0</span>
+                        </div>
+                        <div class="bg-slate-800/60 rounded-lg py-1.5 px-1 border border-white/5">
+                            <i class="fa-solid fa-dumbbell text-orange-400 block mb-0.5"></i>
+                            <span class="text-slate-300">운동</span>
+                            <span id="badge-work" class="block font-bold text-slate-400">0/2</span>
+                        </div>
+                        <div class="bg-slate-800/60 rounded-lg py-1.5 px-1 border border-white/5">
+                            <i class="fa-solid fa-bed text-indigo-400 block mb-0.5"></i>
+                            <span class="text-slate-300">수면</span>
+                            <span id="badge-sleep" class="block font-bold text-slate-400">0/2</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================================= -->
+        <!-- ⭐ SPECIAL SECTION: DAILY PILLBOX CHECKER (매일 영양제 전용 복용함) -->
+        <!-- ========================================================================= -->
+        <section class="bg-white rounded-3xl p-6 sm:p-7 border-2 border-pink-100 shadow-md space-y-5 relative overflow-hidden">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                <div class="flex items-center space-x-3">
+                    <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-pink-500 to-rose-400 text-white flex items-center justify-center font-bold text-xl shadow-md shadow-pink-500/20">
+                        <i class="fa-solid fa-pills"></i>
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h2 class="text-lg sm:text-xl font-bold text-slate-800">하루 영양제 전용 복용 체크함 (Pill Box)</h2>
+                            <span id="pill-box-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-pink-50 text-pink-700 border border-pink-200">0/0 완료</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-0.5">섭취 시간대별로 잊지 말고 영양제를 클릭해 복용을 체크하세요!</p>
+                    </div>
+                </div>
+
+                <!-- Add Custom Pill Quick Button -->
+                <button onclick="togglePillModal(true)" class="inline-flex items-center justify-center gap-2 bg-pink-50 hover:bg-pink-100 text-pink-700 border border-pink-200 text-xs sm:text-sm font-bold px-3.5 py-2 rounded-xl transition shadow-xs">
+                    <i class="fa-solid fa-plus-circle text-pink-600"></i>
+                    <span>+ 내가 먹는 영양제 추가</span>
+                </button>
+            </div>
+
+            <!-- Pill Box 4-Grid by Timing -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                
+                <!-- 1. 기상 직후 공복 -->
+                <div class="bg-amber-50/50 rounded-2xl p-4 border border-amber-100 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded-lg flex items-center gap-1">
+                            <i class="fa-regular fa-sun"></i> 기상 직후 (공복)
+                        </span>
+                        <span id="supp-count-morning-empty" class="text-[11px] font-bold text-amber-700">0/0</span>
+                    </div>
+                    <div id="pill-list-morning-empty" class="space-y-2">
+                        <!-- Dynamic Pills -->
+                    </div>
+                </div>
+
+                <!-- 2. 아침 식후 -->
+                <div class="bg-emerald-50/50 rounded-2xl p-4 border border-emerald-100 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-emerald-800 bg-emerald-100/80 px-2 py-0.5 rounded-lg flex items-center gap-1">
+                            <i class="fa-solid fa-mug-saucer"></i> 아침 식사 직후
+                        </span>
+                        <span id="supp-count-morning-post" class="text-[11px] font-bold text-emerald-700">0/0</span>
+                    </div>
+                    <div id="pill-list-morning-post" class="space-y-2">
+                        <!-- Dynamic Pills -->
+                    </div>
+                </div>
+
+                <!-- 3. 점심 식후 -->
+                <div class="bg-sky-50/50 rounded-2xl p-4 border border-sky-100 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-sky-800 bg-sky-100/80 px-2 py-0.5 rounded-lg flex items-center gap-1">
+                            <i class="fa-solid fa-sun-bright"></i> 점심 식사 직후
+                        </span>
+                        <span id="supp-count-lunch-post" class="text-[11px] font-bold text-sky-700">0/0</span>
+                    </div>
+                    <div id="pill-list-lunch-post" class="space-y-2">
+                        <!-- Dynamic Pills -->
+                    </div>
+                </div>
+
+                <!-- 4. 취침 1시간 전 -->
+                <div class="bg-indigo-50/50 rounded-2xl p-4 border border-indigo-100 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-indigo-800 bg-indigo-100/80 px-2 py-0.5 rounded-lg flex items-center gap-1">
+                            <i class="fa-solid fa-moon"></i> 취침 1시간 전
+                        </span>
+                        <span id="supp-count-night" class="text-[11px] font-bold text-indigo-700">0/0</span>
+                    </div>
+                    <div id="pill-list-night" class="space-y-2">
+                        <!-- Dynamic Pills -->
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- Navigation Tabs for Views -->
+        <div class="flex items-center justify-between border-b border-slate-200 pb-2 overflow-x-auto gap-2">
+            <div class="flex space-x-1 sm:space-x-2">
+                <button onclick="switchTab('checklist')" id="tab-btn-checklist" class="tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-brand-600 text-white shadow-sm flex items-center gap-2">
+                    <i class="fa-solid fa-list-check"></i> 전체 루틴 체크
+                </button>
+                <button onclick="switchTab('diet')" id="tab-btn-diet" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 flex items-center gap-2">
+                    <i class="fa-solid fa-bowl-food text-emerald-600"></i> 식단 가이드
+                </button>
+                <button onclick="switchTab('supplement')" id="tab-btn-supplement" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 flex items-center gap-2">
+                    <i class="fa-solid fa-capsules text-pink-600"></i> 영양제 타이밍 백과
+                </button>
+                <button onclick="switchTab('workout')" id="tab-btn-workout" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 flex items-center gap-2">
+                    <i class="fa-solid fa-person-running text-orange-600"></i> 50분 운동 & 타이머
+                </button>
+                <button onclick="switchTab('sleep')" id="tab-btn-sleep" class="tab-btn px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 flex items-center gap-2">
+                    <i class="fa-solid fa-moon text-indigo-600"></i> 수면 계산기
+                </button>
+            </div>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- TAB 1: ALL-IN-ONE DAILY CHECKLIST -->
+        <!-- ========================================================================= -->
+        <div id="view-checklist" class="space-y-6">
+            
+            <!-- Quick Add Custom Task Bar -->
+            <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center gap-3">
+                <div class="flex items-center gap-2 text-brand-600 font-bold text-sm w-full sm:w-auto">
+                    <i class="fa-solid fa-plus-circle text-base"></i>
+                    <span>나만의 일반 루틴 추가</span>
+                </div>
+                <div class="flex-1 w-full flex gap-2">
+                    <select id="new-task-time" class="bg-slate-50 border border-slate-300 text-xs rounded-xl px-2.5 py-2 text-slate-700 focus:outline-brand-500">
+                        <option value="morning">🌅 아침 (07:00~)</option>
+                        <option value="day">☀️ 오전/점심 (12:00~)</option>
+                        <option value="evening">🏃 저녁/운동 (18:00~)</option>
+                        <option value="night">🛌 취침 전 (22:00~)</option>
+                    </select>
+                    <input type="text" id="new-task-text" placeholder="예: 미온수 500ml 음용, 플랭크 1분, 폼롤러 마사지 등" class="flex-1 bg-slate-50 border border-slate-300 text-xs sm:text-sm rounded-xl px-3 py-2 text-slate-800 focus:outline-brand-500">
+                    <button onclick="addCustomTask()" class="bg-brand-600 hover:bg-brand-700 text-white text-xs sm:text-sm font-semibold px-4 py-2 rounded-xl transition shadow-sm whitespace-nowrap">
+                        추가
+                    </button>
+                </div>
+            </div>
+
+            <!-- Time-based Routine Sections Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                <!-- 1. MORNING ROUTINE -->
+                <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-4 routine-card">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-lg">
+                                🌅
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                                    아침 루틴
+                                    <span class="text-xs font-normal text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">07:00 ~ 09:00</span>
+                                </h3>
+                                <p class="text-xs text-slate-500">신진대사 깨우기 & 뇌 활성화</p>
+                            </div>
+                        </div>
+                        <span id="morning-count" class="text-xs font-bold text-slate-400 bg-slate-50 px-2.5 py-1 rounded-full">0/0</span>
+                    </div>
+
+                    <div id="list-morning" class="space-y-2.5">
+                        <!-- Dynamic Morning Items Injected by JS -->
+                    </div>
+                </div>
+
+                <!-- 2. DAY & LUNCH ROUTINE -->
+                <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-4 routine-card">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center font-bold text-lg">
+                                ☀️
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                                    오전 및 점심 루틴
+                                    <span class="text-xs font-normal text-sky-600 bg-sky-50 px-2 py-0.5 rounded-full">11:30 ~ 14:00</span>
+                                </h3>
+                                <p class="text-xs text-slate-500">혈당 스파이크 방지 & 집중력 유지</p>
+                            </div>
+                        </div>
+                        <span id="day-count" class="text-xs font-bold text-slate-400 bg-slate-50 px-2.5 py-1 rounded-full">0/0</span>
+                    </div>
+
+                    <div id="list-day" class="space-y-2.5">
+                        <!-- Dynamic Day Items Injected by JS -->
+                    </div>
+                </div>
+
+                <!-- 3. EVENING & WORKOUT ROUTINE -->
+                <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-4 routine-card">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center font-bold text-lg">
+                                🏃
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                                    저녁 & 운동 루틴
+                                    <span class="text-xs font-normal text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full">18:00 ~ 21:00</span>
+                                </h3>
+                                <p class="text-xs text-slate-500">체력 증진, 대사 촉진 및 피로 회복</p>
+                            </div>
+                        </div>
+                        <span id="evening-count" class="text-xs font-bold text-slate-400 bg-slate-50 px-2.5 py-1 rounded-full">0/0</span>
+                    </div>
+
+                    <div id="list-evening" class="space-y-2.5">
+                        <!-- Dynamic Evening Items Injected by JS -->
+                    </div>
+                </div>
+
+                <!-- 4. NIGHT & SLEEP ROUTINE -->
+                <div class="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-4 routine-card">
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-lg">
+                                🛌
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-slate-800 text-base flex items-center gap-2">
+                                    취침 전 & 수면 루틴
+                                    <span class="text-xs font-normal text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full">21:30 ~ 23:30</span>
+                                </h3>
+                                <p class="text-xs text-slate-500">근육 이완 & 7~8시간 골든 슬립</p>
+                            </div>
+                        </div>
+                        <span id="night-count" class="text-xs font-bold text-slate-400 bg-slate-50 px-2.5 py-1 rounded-full">0/0</span>
+                    </div>
+
+                    <div id="list-night" class="space-y-2.5">
+                        <!-- Dynamic Night Items Injected by JS -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- TAB 2: DIET GUIDE (식단 가이드) -->
+        <!-- ========================================================================= -->
+        <div id="view-diet" class="hidden space-y-6">
+            <div class="bg-gradient-to-r from-emerald-600 to-teal-700 rounded-3xl p-6 sm:p-8 text-white shadow-md">
+                <div class="max-w-3xl space-y-3">
+                    <span class="px-3 py-1 bg-white/20 rounded-full text-xs font-semibold uppercase tracking-wider">Nutritional Strategy</span>
+                    <h2 class="text-2xl font-bold">혈당 스파이크를 막는 '채-단-탄' 골든 룰</h2>
+                    <p class="text-emerald-100 text-sm leading-relaxed">
+                        식사 시 <b>식이섬유(채소) ➔ 단백질/좋은 지방 ➔ 복합 탄수화물</b> 순서로 섭취하면 인슐린 급분비를 억제해 식곤증을 예방하고 체지방 축적을 방지합니다.
+                    </p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Breakfast Card -->
+                <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="px-3 py-1 bg-amber-100 text-amber-800 text-xs font-bold rounded-xl">🌅 아침 (08:00)</span>
+                        <i class="fa-solid fa-egg text-amber-500 text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-800">에너지 시동 & 공복 혈당 안정</h3>
+                    <div class="space-y-2 text-xs text-slate-600">
+                        <div class="p-3 bg-slate-50 rounded-xl space-y-1">
+                            <span class="font-bold text-slate-700 block">추천 메뉴:</span>
+                            <p>• 삶은 달걀 2개 or 그릭 요거트 100g</p>
+                            <p>• 통밀빵 1장 or 오트밀죽 40g</p>
+                            <p>• 사과 1/2개 or 베리류 한 줌</p>
+                        </div>
+                        <div class="p-3 bg-emerald-50 text-emerald-800 rounded-xl">
+                            <span class="font-bold block">핵심 영양 성분:</span>
+                            <p>복합 탄수화물, 양질의 단백질, 펙틴(식이섬유)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lunch Card -->
+                <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="px-3 py-1 bg-sky-100 text-sky-800 text-xs font-bold rounded-xl">☀️ 점심 (12:30)</span>
+                        <i class="fa-solid fa-fish text-sky-500 text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-800">활동 에너지 & 3대 영양소 균형</h3>
+                    <div class="space-y-2 text-xs text-slate-600">
+                        <div class="p-3 bg-slate-50 rounded-xl space-y-1">
+                            <span class="font-bold text-slate-700 block">추천 메뉴:</span>
+                            <p>• 현미잡곡밥 (2/3공기)</p>
+                            <p>• 고등어/연어구이 or 소고기 우둔살/닭가슴살</p>
+                            <p>• 쌈채소, 버섯/나물 반찬, 미역국</p>
+                        </div>
+                        <div class="p-3 bg-sky-50 text-sky-800 rounded-xl">
+                            <span class="font-bold block">핵심 영양 성분:</span>
+                            <p>오메가-3, 비타민 B12, 철분, 아연, 무기질</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dinner Card -->
+                <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+                    <div class="flex items-center justify-between">
+                        <span class="px-3 py-1 bg-indigo-100 text-indigo-800 text-xs font-bold rounded-xl">🌙 저녁 (18:30)</span>
+                        <i class="fa-solid fa-leaf text-indigo-500 text-xl"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-slate-800">소화 부담 최소화 & 세포 재생</h3>
+                    <div class="space-y-2 text-xs text-slate-600">
+                        <div class="p-3 bg-slate-50 rounded-xl space-y-1">
+                            <span class="font-bold text-slate-700 block">추천 메뉴:</span>
+                            <p>• 구운 두부 & 양송이버섯 샐러드</p>
+                            <p>• 닭안심 or 흰살생선 100g</p>
+                            <p>• 찐 단호박 1조각 (선택)</p>
+                        </div>
+                        <div class="p-3 bg-indigo-50 text-indigo-800 rounded-xl">
+                            <span class="font-bold block">핵심 영양 성분:</span>
+                            <p>식물성 단백질, 이소플라본, 트립토판, 마그네슘</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- TAB 3: SUPPLEMENT GUIDE (영양제 백과 & 복용 주의사항) -->
+        <!-- ========================================================================= -->
+        <div id="view-supplement" class="hidden space-y-6">
+            <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-capsules text-pink-500"></i>
+                        영양제 섭취 타이밍 & 생체이용률 최적화 가이드
+                    </h2>
+                    <p class="text-xs text-slate-500 mt-1">영양제는 흡수 메커니즘(수용성 vs 지용성)과 상호작용에 따라 시간대를 나누는 것이 중요합니다.</p>
+                </div>
+
+                <!-- Timing Table -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                        <thead>
+                            <tr class="bg-slate-50 text-slate-600 border-b border-slate-200">
+                                <th class="py-3 px-4 rounded-l-xl">시간대</th>
+                                <th class="py-3 px-4">추천 영양제</th>
+                                <th class="py-3 px-4">복용 이유 및 과학적 근거</th>
+                                <th class="py-3 px-4 rounded-r-xl">주의사항</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100 text-slate-700">
+                            <tr>
+                                <td class="py-3.5 px-4 font-bold text-amber-600">🌅 기상 직후 (공복)</td>
+                                <td class="py-3.5 px-4 font-semibold">유산균 (프로바이오틱스)</td>
+                                <td class="py-3.5 px-4">위산 분비가 적은 공복에 미온수와 함께 섭취 시 장내 생존율 최대화</td>
+                                <td class="py-3.5 px-4 text-slate-500">미온수 300ml 이상과 섭취</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3.5 px-4 font-bold text-emerald-600">🍳 아침 식후</td>
+                                <td class="py-3.5 px-4 font-semibold">비타민 B군, 비타민 C, 코엔자임Q10</td>
+                                <td class="py-3.5 px-4">낮 시간 활력 및 에너지 대사 촉진 / 식후 복용으로 위장 자극 방지</td>
+                                <td class="py-3.5 px-4 text-slate-500">저녁 복용 시 각성으로 불면 유발 가능</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3.5 px-4 font-bold text-sky-600">☀️ 점심 식후</td>
+                                <td class="py-3.5 px-4 font-semibold">오메가-3, 비타민 D+K2, 루테인</td>
+                                <td class="py-3.5 px-4">지용성 영양소는 식사 중의 지방 성분과 섞여 흡수율이 수배 증가함</td>
+                                <td class="py-3.5 px-4 text-slate-500">식후 즉시 복용 시 어유 비린내 역류 방지</td>
+                            </tr>
+                            <tr>
+                                <td class="py-3.5 px-4 font-bold text-indigo-600">🛌 취침 1시간 전</td>
+                                <td class="py-3.5 px-4 font-semibold">마그네슘, 칼슘, 테아닌</td>
+                                <td class="py-3.5 px-4">근육 긴장 이완, 신경 안정, 수면 호르몬(멜라토닌) 합성 지원</td>
+                                <td class="py-3.5 px-4 text-slate-500">칼슘과 마그네슘은 2:1 비율 권장</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Gender Specific Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
+                    <div class="p-5 bg-blue-50/50 rounded-2xl border border-blue-100 space-y-2">
+                        <div class="flex items-center gap-2 text-blue-700 font-bold text-sm">
+                            <i class="fa-solid fa-mars text-base"></i> 남성 추가 체크포인트
+                        </div>
+                        <ul class="text-xs text-slate-600 space-y-1.5 list-disc list-inside">
+                            <li><b>아연 (Zinc)</b>: 테스토스테론 합성 및 전립선·면역 세포 기능 유지 (점심 식후).</li>
+                            <li><b>밀크씨슬 (실리마린)</b>: 잦은 업무 피로와 음주로부터 간 세포 항산화 보호.</li>
+                            <li><b>아르기닌 / 쏘팔메토</b>: 혈류 순환 개선 및 중년 남성 전립선 활력 지원.</li>
+                        </ul>
+                    </div>
+
+                    <div class="p-5 bg-rose-50/50 rounded-2xl border border-rose-100 space-y-2">
+                        <div class="flex items-center gap-2 text-rose-700 font-bold text-sm">
+                            <i class="fa-solid fa-venus text-base"></i> 여성 추가 체크포인트
+                        </div>
+                        <ul class="text-xs text-slate-600 space-y-1.5 list-disc list-inside">
+                            <li><b>철분 (Iron)</b>: 가임기 월경으로 인한 빈혈 예방 (비타민C와 섭취, 칼슘/커피와 2시간 간격).</li>
+                            <li><b>칼슘 & 비타민 D</b>: 골밀도 감소 예방 (마그네슘과 2:1 비율 권장, 저녁 복용).</li>
+                            <li><b>여성 질 유산균 / 엽산</b>: 유익균 밸런스 및 세포 재생, 가임기 필수 영양.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- TAB 4: WORKOUT GUIDE & TIMER (50분 운동 & 타이머) -->
+        <!-- ========================================================================= -->
+        <div id="view-workout" class="hidden space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div class="lg:col-span-7 bg-white rounded-3xl p-6 border border-slate-200 shadow-sm space-y-4">
+                    <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                        <i class="fa-solid fa-dumbbell text-orange-500"></i>
+                        하루 50분 전신 복합 운동 플랜
+                    </h2>
+                    <p class="text-xs text-slate-500">대근육 중심의 근력 운동으로 기초대사량을 높이고, 중강도 유산소로 체지방을 연소합니다.</p>
+
+                    <div class="space-y-3 pt-2">
+                        <div class="p-3.5 bg-slate-50 rounded-2xl border border-slate-100 flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 font-bold text-xs flex items-center justify-center shrink-0">5m</div>
+                            <div>
+                                <h4 class="font-bold text-xs sm:text-sm text-slate-800">1. 준비 운동 (Warm-up)</h4>
+                                <p class="text-xs text-slate-600 mt-0.5">목, 어깨, 고관절 회전, 제자리 걷기, 가벼운 점핑잭으로 심박수와 관절 체온 올리기</p>
+                            </div>
+                        </div>
+
+                        <div class="p-3.5 bg-orange-50/60 rounded-2xl border border-orange-100 flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-xl bg-orange-100 text-orange-700 font-bold text-xs flex items-center justify-center shrink-0">25m</div>
+                            <div>
+                                <h4 class="font-bold text-xs sm:text-sm text-slate-800">2. 대근육 복합 근력 운동 (Strength)</h4>
+                                <div class="text-xs text-slate-600 mt-1 space-y-1">
+                                    <p>• <b>스쿼트 (하체)</b>: 15회 × 3세트 (허벅지·둔근 강화)</p>
+                                    <p>• <b>런지 or 힙브릿지 (둔근/코어)</b>: 12회 × 3세트</p>
+                                    <p>• <b>푸시업 (가슴/상체)</b>: 12회 × 3세트 (무릎 대고 가능)</p>
+                                    <p>• <b>플랭크 (코어 전신)</b>: 45초 × 3세트</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-3.5 bg-sky-50/60 rounded-2xl border border-sky-100 flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-xl bg-sky-100 text-sky-700 font-bold text-xs flex items-center justify-center shrink-0">15m</div>
+                            <div>
+                                <h4 class="font-bold text-xs sm:text-sm text-slate-800">3. 중강도 유산소 운동 (Cardio Zone 2)</h4>
+                                <p class="text-xs text-slate-600 mt-0.5">경사도 트레드밀 빠르게 걷기, 실내 자전거 or 조깅 (대화가 약간 가쁠 정도의 심박수)</p>
+                            </div>
+                        </div>
+
+                        <div class="p-3.5 bg-emerald-50/60 rounded-2xl border border-emerald-100 flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 font-bold text-xs flex items-center justify-center shrink-0">5m</div>
+                            <div>
+                                <h4 class="font-bold text-xs sm:text-sm text-slate-800">4. 쿨다운 & 폼롤러 (Cool-down)</h4>
+                                <p class="text-xs text-slate-600 mt-0.5">허벅지 앞/뒤, 종아리 폼롤러 이완, 척추 기립근 스트레칭으로 젖산 분해 및 뭉침 방지</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-5 bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl p-6 text-white flex flex-col justify-between shadow-lg">
+                    <div>
+                        <div class="flex items-center justify-between border-b border-slate-700 pb-3">
+                            <span class="text-xs font-semibold text-orange-400 uppercase tracking-wider">Exercise Timer</span>
+                            <span class="text-xs text-slate-400">운동 루틴 타이머</span>
+                        </div>
+
+                        <div class="text-center py-10 space-y-2">
+                            <span id="timer-stage" class="text-xs px-3 py-1 bg-orange-500/20 text-orange-300 rounded-full border border-orange-500/30">
+                                50분 전신 루틴
+                            </span>
+                            <div id="timer-display" class="text-5xl sm:text-6xl font-mono font-black tracking-widest text-white mt-2">
+                                50:00
+                            </div>
+                            <p class="text-xs text-slate-400">시작 버튼을 누르면 카운트다운됩니다.</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-3">
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="setTimerDuration(300, '준비 운동 (5분)')" class="py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs text-slate-300 font-medium border border-slate-700 transition">
+                                준비 5분
+                            </button>
+                            <button onclick="setTimerDuration(1500, '근력 운동 (25분)')" class="py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs text-slate-300 font-medium border border-slate-700 transition">
+                                근력 25분
+                            </button>
+                            <button onclick="setTimerDuration(3000, '전체 루틴 (50분)')" class="py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-xs text-slate-300 font-medium border border-slate-700 transition">
+                                전체 50분
+                            </button>
+                        </div>
+                        <div class="flex gap-2">
+                            <button id="timer-toggle-btn" onclick="toggleTimer()" class="flex-1 py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-orange-500/30">
+                                <i class="fa-solid fa-play"></i> <span>타이머 시작</span>
+                            </button>
+                            <button onclick="resetTimer()" class="px-4 py-3 bg-slate-700 hover:bg-slate-600 text-slate-300 font-semibold rounded-xl transition">
+                                <i class="fa-solid fa-rotate-left"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================================================= -->
+        <!-- TAB 5: SLEEP GUIDE & CALCULATOR (수면 계산기) -->
+        <!-- ========================================================================= -->
+        <div id="view-sleep" class="hidden space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div class="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+                    <div>
+                        <span class="px-3 py-1 bg-indigo-100 text-indigo-800 text-xs font-bold rounded-xl">90분 수면 주기 기반</span>
+                        <h2 class="text-xl font-bold text-slate-800 mt-2 flex items-center gap-2">
+                            <i class="fa-solid fa-bed text-indigo-600"></i>
+                            최적의 골든 수면 시간 계산기
+                        </h2>
+                        <p class="text-xs text-slate-500 mt-1">
+                            인간의 수면은 90분 주기(렘수면-비렘수면)로 반복됩니다. 수면 주기 끝에 일어날 때 피로 없이 가장 개운하게 일어날 수 있습니다.
+                        </p>
+                    </div>
+
+                    <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-4">
+                        <div class="flex flex-col sm:flex-row items-center gap-3">
+                            <label class="text-xs sm:text-sm font-bold text-slate-700 shrink-0">내일 아침 기상 희망 시간:</label>
+                            <input type="time" id="wake-time-input" value="07:00" class="bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm font-bold text-slate-800 focus:outline-indigo-500">
+                            <button onclick="calculateSleepTimes()" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white text-xs sm:text-sm font-bold px-4 py-2 rounded-xl transition shadow-sm">
+                                추천 취침 시간 계산
+                            </button>
+                        </div>
+
+                        <div id="sleep-results" class="pt-2 grid grid-cols-1 sm:grid-cols-3 gap-3 text-center">
+                            <!-- Calculated Cards by JS -->
+                        </div>
+                    </div>
+
+                    <div class="space-y-3 pt-2">
+                        <h4 class="font-bold text-sm text-slate-800">🌙 숙면을 만드는 4대 수면 위생</h4>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                            <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                <span class="font-bold text-indigo-700 block mb-1">1. 카페인 컷오프</span>
+                                <p class="text-slate-600">오후 2시 이후 카페인 섭취 중단 (카페인 반감기 5~7시간 고려).</p>
+                            </div>
+                            <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                <span class="font-bold text-indigo-700 block mb-1">2. 취침 90분 전 미온수 샤워</span>
+                                <p class="text-slate-600">체온이 상승 후 서서히 식으며 자연스러운 졸음 유도.</p>
+                            </div>
+                            <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                <span class="font-bold text-indigo-700 block mb-1">3. 블루라이트 차단</span>
+                                <p class="text-slate-600">취침 1시간 전 스마트폰 사용을 멈추고 멜라토닌 분비 촉진.</p>
+                            </div>
+                            <div class="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                                <span class="font-bold text-indigo-700 block mb-1">4. 침실 환경 최적화</span>
+                                <p class="text-slate-600">실내 온도 18~21℃, 습도 50%, 완전 암막 상태 유지.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-5 bg-gradient-to-br from-indigo-950 via-slate-900 to-slate-800 rounded-3xl p-6 text-white space-y-5 shadow-lg">
+                    <div class="border-b border-indigo-900/60 pb-3">
+                        <span class="text-xs font-semibold text-indigo-400 uppercase tracking-wider">Sleep Hygiene</span>
+                        <h3 class="text-lg font-bold text-white mt-1">왜 7~8시간 수면일까요?</h3>
+                    </div>
+
+                    <div class="space-y-4 text-xs sm:text-sm text-slate-300 leading-relaxed font-light">
+                        <div class="flex items-start gap-3">
+                            <i class="fa-solid fa-brain text-indigo-400 text-base mt-1"></i>
+                            <p><b class="text-white font-medium">뇌 노폐물 배출:</b> 수면 중 뇌 척수액을 통해 알츠하이머 유발 물질(베타 아밀로이드)이 청소됩니다.</p>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i class="fa-solid fa-dna text-teal-400 text-base mt-1"></i>
+                            <p><b class="text-white font-medium">호르몬 분비 & 근육 회복:</b> 깊은 비렘수면 단계에서 성장 호르몬이 분비되어 근육과 면역 세포가 재생됩니다.</p>
+                        </div>
+                        <div class="flex items-start gap-3">
+                            <i class="fa-solid fa-scale-balanced text-amber-400 text-base mt-1"></i>
+                            <p><b class="text-white font-medium">식욕 호르몬 밸런스:</b> 수면 부족 시 식욕 억제 호르몬(렙틴)이 줄고 식욕 촉진(그렐린)이 증가하여 폭식을 유발합니다.</p>
+                        </div>
+                    </div>
+
+                    <div class="p-4 bg-indigo-900/40 border border-indigo-700/40 rounded-2xl text-xs text-indigo-200">
+                        💡 <b>Tip:</b> 주말 늦잠보다 매일 일정한 시간에 일어나는 것이 생체 시계를 리셋하는 가장 빠른 방법입니다.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ========================================================================= -->
+    <!-- CUSTOM PILL ADD MODAL -->
+    <!-- ========================================================================= -->
+    <div id="pill-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 animate-scale-up">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                <div class="flex items-center gap-2 text-pink-600 font-bold">
+                    <i class="fa-solid fa-pills text-lg"></i>
+                    <h3 class="text-base text-slate-800">새 영양제 등록</h3>
+                </div>
+                <button onclick="togglePillModal(false)" class="text-slate-400 hover:text-slate-600 p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3 text-xs sm:text-sm">
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">영양제 이름</label>
+                    <input type="text" id="modal-pill-name" placeholder="예: 루테인 지아잔틴, 코엔자임 Q10, 콜라겐" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-800 focus:outline-pink-500">
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">복용 시간대</label>
+                    <select id="modal-pill-timing" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-800 focus:outline-pink-500">
+                        <option value="morning-empty">🌅 기상 직후 (공복)</option>
+                        <option value="morning-post">🍳 아침 식사 직후</option>
+                        <option value="lunch-post">☀️ 점심 식사 직후</option>
+                        <option value="night">🌙 취침 1시간 전</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block font-bold text-slate-700 mb-1">복용 팁 / 용량 메모 (선택)</label>
+                    <input type="text" id="modal-pill-memo" placeholder="예: 1일 1캡슐 식후 즉시 복용" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3 py-2 text-slate-800 focus:outline-pink-500">
+                </div>
+            </div>
+
+            <div class="flex gap-2 pt-2">
+                <button onclick="togglePillModal(false)" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold transition">
+                    취소
+                </button>
+                <button onclick="submitNewPill()" class="flex-1 py-2.5 bg-pink-500 hover:bg-pink-600 text-white rounded-xl font-bold transition shadow-md shadow-pink-500/20">
+                    영양제 등록하기
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 mt-12 py-6 text-center text-xs text-slate-500">
+        <div class="max-w-7xl mx-auto px-4 space-y-1">
+            <p class="font-medium text-slate-700">Daily Vital Health & Supplement Routine Manager</p>
+            <p>본 루틴은 성인 남녀의 일반적인 건강 증진을 위해 설계되었으며, 개인 건강 상태에 따라 전문의와 상담을 권장합니다.</p>
+        </div>
+    </footer>
+
+    <!-- ========================================================================= -->
+    <!-- JAVASCRIPT LOGIC -->
+    <!-- ========================================================================= -->
+    <script>
+        // Default Supplement Pillbox Master List
+        const DEFAULT_PILLS = [
+            { id: 'pill_1', timing: 'morning-empty', timeSlot: 'morning', name: '유산균 (프로바이오틱스)', memo: '미온수 300ml와 함께 섭취', gender: 'all' },
+            { id: 'pill_2', timing: 'morning-post', timeSlot: 'morning', name: '비타민 B군 (활력 에너지)', memo: '식사 직후 섭취하여 위장 보호', gender: 'all' },
+            { id: 'pill_3', timing: 'morning-post', timeSlot: 'morning', name: '비타민 C (항산화 피로회복)', memo: '식후 섭취 권장', gender: 'all' },
+            { id: 'pill_f1', timing: 'morning-empty', timeSlot: 'morning', name: '가임기 여성 철분제 (Iron)', memo: '비타민C와 섭취, 커피/칼슘과 2h 간격', gender: 'female' },
+            { id: 'pill_4', timing: 'lunch-post', timeSlot: 'day', name: '오메가-3 (EPA/DHA)', memo: '지용성 - 점심 식사 지방과 함께 흡수', gender: 'all' },
+            { id: 'pill_5', timing: 'lunch-post', timeSlot: 'day', name: '비타민 D3 + K2', memo: '지용성 - 뼈 건강 & 면역력 증진', gender: 'all' },
+            { id: 'pill_m1', timing: 'lunch-post', timeSlot: 'day', name: '남성 활력 아연(Zinc) & 밀크씨슬', memo: '간 건강 및 테스토스테론 지원', gender: 'male' },
+            { id: 'pill_6', timing: 'night', timeSlot: 'night', name: '마그네슘 (Magnesium)', memo: '신경 이완, 근육 긴장 완화 & 숙면 유도', gender: 'all' },
+            { id: 'pill_f2', timing: 'night', timeSlot: 'night', name: '여성 칼슘 (Calcium)', memo: '골밀도 케어 (마그네슘과 균형 섭취)', gender: 'female' }
+        ];
+
+        // Default General Routines Master List (Meals, Workouts, Habits)
+        const DEFAULT_ROUTINES = [
+            // MORNING
+            { id: 'm_w1', time: 'morning', category: 'water', gender: 'all', title: '기상 직후 미온수 1잔 (300~500ml)', desc: '밤새 손실된 수분 보충 및 림프 순환 촉진', tag: '수분' },
+            { id: 'm_s1', time: 'morning', category: 'stretch', gender: 'all', title: '아침 햇빛 10분 쬐기 & 기지개 스트레칭', desc: '멜라토닌 억제 및 세로토닌 합성으로 생체시계 리셋', tag: '라이프' },
+            { id: 'm_d1', time: 'morning', category: 'diet', gender: 'all', title: '고단백 아침 식사 (달걀/그릭요거트 + 복합탄수)', desc: '공복 혈당 안정 및 오전 뇌 에너지 공급', tag: '식사' },
+
+            // DAY / LUNCH
+            { id: 'd_d1', time: 'day', category: 'diet', gender: 'all', title: '균형 잡힌 점심 식사 (채소 ➔ 단백질 ➔ 탄수화물 순)', desc: '혈당 스파이크 방지 및 식곤증 예방', tag: '식사' },
+            { id: 'd_w1', time: 'day', category: 'workout', gender: 'all', title: '식후 15분 가벼운 걷기 산책', desc: '혈당 급상승 방지 및 오후 뇌 혈류 공급', tag: '운동' },
+            { id: 'd_c1', time: 'day', category: 'life', gender: 'all', title: '오후 2시 이후 카페인 컷오프 & 수분 충전', desc: '야간 수면의 질을 위한 카페인 섭취 제한', tag: '수면준비' },
+
+            // EVENING & WORKOUT
+            { id: 'e_d1', time: 'evening', category: 'diet', gender: 'all', title: '가벼운 저녁 식사 (취침 3~4시간 전 완료)', desc: '소화가 편한 고단백·식이섬유 위주 식단', tag: '식사' },
+            { id: 'e_w1', time: 'evening', category: 'workout', gender: 'all', title: '50분 데일리 운동 (대근육 근력 30m + 유산소 20m)', desc: '스쿼트, 푸시업, 플랭크 + 중강도 유산소', tag: '운동' },
+            { id: 'e_s1', time: 'evening', category: 'workout', gender: 'all', title: '운동 후 폼롤러 마사지 및 정적 스트레칭', desc: '젖산 배출 및 근육 긴장 완화', tag: '회복' },
+
+            // NIGHT & SLEEP
+            { id: 'n_l1', time: 'night', category: 'life', gender: 'all', title: '미온수 샤워 또는 족욕 (취침 90분 전)', desc: '심부 체온 하강 유도로 자연스러운 수면 유도', tag: '회복' },
+            { id: 'n_s1', time: 'night', category: 'sleep', gender: 'all', title: '취침 1시간 전 디지털 디톡스 (스마트폰 OFF)', desc: '블루라이트 차단으로 뇌 멜라토닌 분비 정상화', tag: '수면' },
+            { id: 'n_s2', time: 'night', category: 'sleep', gender: 'all', title: '암막·서늘한 환경에서 7~8시간 골든 슬립', desc: '세포 재생 및 뇌 노폐물 배출 숙면 취하기', tag: '수면' }
+        ];
+
+        // State variables
+        let currentDate = new Date();
+        let currentGender = 'all'; // 'all', 'male', 'female'
+        let checkStates = {}; // Key: "YYYY-MM-DD" -> Array of checked IDs (both routines and pills)
+        let customTasks = []; // Array of custom task objects
+        let customPills = []; // Array of custom pill objects
+
+        // Initialize App
+        document.addEventListener('DOMContentLoaded', () => {
+            loadFromLocalStorage();
+            updateDisplayDate();
+            renderAll();
+            calculateSleepTimes();
+        });
+
+        // Date String Helper (YYYY-MM-DD)
+        function getDateKey(d = currentDate) {
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        // Format Korean Date String
+        function updateDisplayDate() {
+            const days = ['일', '월', '화', '수', '목', '금', '토'];
+            const year = currentDate.getFullYear();
+            const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+            const date = String(currentDate.getDate()).padStart(2, '0');
+            const dayName = days[currentDate.getDay()];
+            
+            document.getElementById('display-date').innerText = `${year}.${month}.${date} (${dayName})`;
+        }
+
+        // Change Date
+        function changeDate(offset) {
+            if (offset === 0) {
+                currentDate = new Date();
+            } else {
+                currentDate.setDate(currentDate.getDate() + offset);
+            }
+            updateDisplayDate();
+            renderAll();
+        }
+
+        // Gender Switch
+        function setGender(gender) {
+            currentGender = gender;
+            
+            document.querySelectorAll('.gender-btn').forEach(btn => {
+                btn.className = 'px-2.5 py-1.5 rounded-lg transition-all gender-btn text-slate-600';
+            });
+
+            const activeBtn = document.getElementById(`gender-${gender}-btn`);
+            if (activeBtn) {
+                activeBtn.className = 'px-2.5 py-1.5 rounded-lg transition-all gender-btn bg-white text-slate-800 shadow-sm font-bold';
+            }
+
+            const tagEl = document.getElementById('gender-tag');
+            if (gender === 'male') {
+                tagEl.innerText = '남성 맞춤형 루틴';
+                tagEl.className = 'px-2.5 py-0.5 rounded-full bg-blue-900/60 text-blue-300 text-xs border border-blue-500/30';
+            } else if (gender === 'female') {
+                tagEl.innerText = '여성 맞춤형 루틴';
+                tagEl.className = 'px-2.5 py-0.5 rounded-full bg-rose-900/60 text-rose-300 text-xs border border-rose-500/30';
+            } else {
+                tagEl.innerText = '공통 맞춤형 루틴';
+                tagEl.className = 'px-2.5 py-0.5 rounded-full bg-slate-700/80 text-slate-300 text-xs';
+            }
+
+            renderAll();
+        }
+
+        // Get visible pills
+        function getFilteredPills() {
+            const allPills = [...DEFAULT_PILLS, ...customPills];
+            return allPills.filter(item => {
+                if (currentGender === 'all') return true;
+                return item.gender === 'all' || item.gender === currentGender;
+            });
+        }
+
+        // Get visible general tasks
+        function getFilteredTasks() {
+            const allTasks = [...DEFAULT_ROUTINES, ...customTasks];
+            return allTasks.filter(item => {
+                if (currentGender === 'all') return true;
+                return item.gender === 'all' || item.gender === currentGender;
+            });
+        }
+
+        // Main Render Function
+        function renderAll() {
+            renderPillBox();
+            renderTimelineChecklists();
+            updateOverallProgress();
+        }
+
+        // 1. Render Dedicated Pill Box
+        function renderPillBox() {
+            const dateKey = getDateKey();
+            const checkedList = checkStates[dateKey] || [];
+            const pills = getFilteredPills();
+
+            const containers = {
+                'morning-empty': document.getElementById('pill-list-morning-empty'),
+                'morning-post': document.getElementById('pill-list-morning-post'),
+                'lunch-post': document.getElementById('pill-list-lunch-post'),
+                'night': document.getElementById('pill-list-night')
+            };
+
+            const counts = {
+                'morning-empty': { total: 0, done: 0 },
+                'morning-post': { total: 0, done: 0 },
+                'lunch-post': { total: 0, done: 0 },
+                'night': { total: 0, done: 0 }
+            };
+
+            Object.values(containers).forEach(c => c.innerHTML = '');
+
+            let totalPills = 0;
+            let donePills = 0;
+
+            pills.forEach(pill => {
+                const isChecked = checkedList.includes(pill.id);
+                if (counts[pill.timing]) {
+                    counts[pill.timing].total++;
+                    if (isChecked) counts[pill.timing].done++;
+                }
+
+                totalPills++;
+                if (isChecked) donePills++;
+
+                const pillHtml = `
+                    <div class="flex items-start justify-between p-2.5 rounded-xl border transition-all ${isChecked ? 'bg-pink-50/70 border-pink-200' : 'bg-white border-slate-200 hover:border-pink-300 shadow-xs'}">
+                        <label class="flex items-start gap-2.5 cursor-pointer flex-1 mr-1">
+                            <input type="checkbox" onchange="toggleCheck('${pill.id}')" ${isChecked ? 'checked' : ''} class="checkbox-custom pill-checkbox mt-0.5 shrink-0">
+                            <div>
+                                <div class="flex items-center gap-1">
+                                    <span class="text-xs font-bold text-slate-800 ${isChecked ? 'completed-item' : ''}">${pill.name}</span>
+                                    ${pill.gender === 'male' ? '<span class="text-[10px] text-blue-600 bg-blue-50 px-1 py-0.2 rounded font-semibold">남성</span>' : ''}
+                                    ${pill.gender === 'female' ? '<span class="text-[10px] text-rose-600 bg-rose-50 px-1 py-0.2 rounded font-semibold">여성</span>' : ''}
+                                </div>
+                                <p class="text-[11px] text-slate-500 mt-0.5 ${isChecked ? 'completed-item' : ''}">${pill.memo}</p>
+                            </div>
+                        </label>
+                        ${pill.isCustom ? `
+                            <button onclick="deleteCustomPill('${pill.id}')" class="text-slate-300 hover:text-rose-500 p-0.5 transition" title="영양제 삭제">
+                                <i class="fa-regular fa-trash-can text-xs"></i>
+                            </button>
+                        ` : ''}
+                    </div>
+                `;
+
+                if (containers[pill.timing]) {
+                    containers[pill.timing].insertAdjacentHTML('beforeend', pillHtml);
+                }
+            });
+
+            // Update pill counts
+            document.getElementById('supp-count-morning-empty').innerText = `${counts['morning-empty'].done}/${counts['morning-empty'].total}`;
+            document.getElementById('supp-count-morning-post').innerText = `${counts['morning-post'].done}/${counts['morning-post'].total}`;
+            document.getElementById('supp-count-lunch-post').innerText = `${counts['lunch-post'].done}/${counts['lunch-post'].total}`;
+            document.getElementById('supp-count-night').innerText = `${counts['night'].done}/${counts['night'].total}`;
+
+            const badgeEl = document.getElementById('pill-box-badge');
+            badgeEl.innerText = `${donePills}/${totalPills} 완료`;
+            if (totalPills > 0 && donePills === totalPills) {
+                badgeEl.className = 'px-2.5 py-0.5 rounded-full text-xs font-bold bg-pink-500 text-white shadow-sm';
+            } else {
+                badgeEl.className = 'px-2.5 py-0.5 rounded-full text-xs font-bold bg-pink-50 text-pink-700 border border-pink-200';
+            }
+
+            document.getElementById('pill-progress-text').innerText = `${donePills}/${totalPills} 완료`;
+            document.getElementById('badge-supp').innerText = `${donePills}/${totalPills}`;
+        }
+
+        // 2. Render Timeline Checklist (Both Pills & General Habits)
+        function renderTimelineChecklists() {
+            const dateKey = getDateKey();
+            const checkedList = checkStates[dateKey] || [];
+            const tasks = getFilteredTasks();
+            const pills = getFilteredPills();
+
+            const timeSlots = ['morning', 'day', 'evening', 'night'];
+            const containers = {
+                morning: document.getElementById('list-morning'),
+                day: document.getElementById('list-day'),
+                evening: document.getElementById('list-evening'),
+                night: document.getElementById('list-night')
+            };
+
+            timeSlots.forEach(slot => containers[slot].innerHTML = '');
+
+            const counts = {
+                morning: { total: 0, done: 0 },
+                day: { total: 0, done: 0 },
+                evening: { total: 0, done: 0 },
+                night: { total: 0, done: 0 }
+            };
+
+            // First inject Pills into their respective timeline slots
+            pills.forEach(pill => {
+                const slot = pill.timeSlot || 'morning';
+                const isChecked = checkedList.includes(pill.id);
+                if (counts[slot]) {
+                    counts[slot].total++;
+                    if (isChecked) counts[slot].done++;
+                }
+
+                const itemHtml = `
+                    <div class="flex items-start justify-between p-3 rounded-2xl border transition-all ${isChecked ? 'bg-pink-50/60 border-pink-200' : 'bg-pink-50/20 border-pink-100 hover:border-pink-200 shadow-xs'}">
+                        <label class="flex items-start gap-3 cursor-pointer flex-1 mr-2">
+                            <input type="checkbox" onchange="toggleCheck('${pill.id}')" ${isChecked ? 'checked' : ''} class="checkbox-custom pill-checkbox mt-0.5 shrink-0">
+                            <div class="space-y-0.5">
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <span class="text-xs px-2 py-0.5 rounded-md font-semibold bg-pink-100 text-pink-700 border border-pink-200"><i class="fa-solid fa-pills mr-1"></i>영양제</span>
+                                    <span class="text-xs sm:text-sm font-bold text-slate-800 ${isChecked ? 'completed-item' : ''}">[복용] ${pill.name}</span>
+                                </div>
+                                <p class="text-[11px] sm:text-xs text-slate-500 ${isChecked ? 'completed-item' : ''}">${pill.memo}</p>
+                            </div>
+                        </label>
+                    </div>
+                `;
+
+                if (containers[slot]) {
+                    containers[slot].insertAdjacentHTML('beforeend', itemHtml);
+                }
+            });
+
+            // Then inject general tasks
+            tasks.forEach(task => {
+                const isChecked = checkedList.includes(task.id);
+                if (counts[task.time]) {
+                    counts[task.time].total++;
+                    if (isChecked) counts[task.time].done++;
+                }
+
+                const tagColorClass = getTagStyle(task.tag);
+                const itemHtml = `
+                    <div class="flex items-start justify-between p-3 rounded-2xl border transition-all ${isChecked ? 'bg-slate-50/80 border-slate-200' : 'bg-white border-slate-200/80 hover:border-slate-300 shadow-xs'}">
+                        <label class="flex items-start gap-3 cursor-pointer flex-1 mr-2">
+                            <input type="checkbox" onchange="toggleCheck('${task.id}')" ${isChecked ? 'checked' : ''} class="checkbox-custom mt-0.5 shrink-0">
+                            <div class="space-y-0.5">
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <span class="text-xs px-2 py-0.5 rounded-md font-semibold ${tagColorClass}">${task.tag}</span>
+                                    <span class="text-xs sm:text-sm font-bold text-slate-800 ${isChecked ? 'completed-item' : ''}">${task.title}</span>
+                                </div>
+                                <p class="text-[11px] sm:text-xs text-slate-500 ${isChecked ? 'completed-item' : ''}">${task.desc}</p>
+                            </div>
+                        </label>
+                        ${task.isCustom ? `
+                            <button onclick="deleteCustomTask('${task.id}')" class="text-slate-300 hover:text-rose-500 p-1 transition" title="삭제">
+                                <i class="fa-regular fa-trash-can text-xs"></i>
+                            </button>
+                        ` : ''}
+                    </div>
+                `;
+
+                if (containers[task.time]) {
+                    containers[task.time].insertAdjacentHTML('beforeend', itemHtml);
+                }
+            });
+
+            // Update slot counter badges
+            timeSlots.forEach(slot => {
+                const el = document.getElementById(`${slot}-count`);
+                if (el) {
+                    el.innerText = `${counts[slot].done}/${counts[slot].total}`;
+                    if (counts[slot].total > 0 && counts[slot].done === counts[slot].total) {
+                        el.className = 'text-xs font-bold text-emerald-700 bg-emerald-100 px-2.5 py-1 rounded-full';
+                    } else {
+                        el.className = 'text-xs font-bold text-slate-400 bg-slate-50 px-2.5 py-1 rounded-full';
+                    }
+                }
+            });
+        }
+
+        // 3. Update Overall Progress
+        function updateOverallProgress() {
+            const dateKey = getDateKey();
+            const checkedList = checkStates[dateKey] || [];
+            const tasks = getFilteredTasks();
+            const pills = getFilteredPills();
+
+            let grandTotal = tasks.length + pills.length;
+            let grandDone = 0;
+
+            const pillarCounts = {
+                diet: { total: 0, done: 0 },
+                workout: { total: 0, done: 0 },
+                sleep: { total: 0, done: 0 }
+            };
+
+            tasks.forEach(t => {
+                const isChecked = checkedList.includes(t.id);
+                if (isChecked) grandDone++;
+
+                if (t.category === 'diet') {
+                    pillarCounts.diet.total++;
+                    if (isChecked) pillarCounts.diet.done++;
+                } else if (t.category === 'workout') {
+                    pillarCounts.workout.total++;
+                    if (isChecked) pillarCounts.workout.done++;
+                } else if (t.category === 'sleep') {
+                    pillarCounts.sleep.total++;
+                    if (isChecked) pillarCounts.sleep.done++;
+                }
+            });
+
+            pills.forEach(p => {
+                if (checkedList.includes(p.id)) grandDone++;
+            });
+
+            const percent = grandTotal > 0 ? Math.round((grandDone / grandTotal) * 100) : 0;
+            document.getElementById('progress-percent').innerText = percent;
+            document.getElementById('progress-counts').innerText = `(${grandDone}/${grandTotal} 완료)`;
+            document.getElementById('progress-bar-fill').style.width = `${percent}%`;
+
+            document.getElementById('badge-diet').innerText = `${pillarCounts.diet.done}/${pillarCounts.diet.total}`;
+            document.getElementById('badge-work').innerText = `${pillarCounts.workout.done}/${pillarCounts.workout.total}`;
+            document.getElementById('badge-sleep').innerText = `${pillarCounts.sleep.done}/${pillarCounts.sleep.total}`;
+
+            if (percent === 100 && grandTotal > 0) {
+                triggerConfetti();
+            }
+        }
+
+        // Tag Color Badge Helper
+        function getTagStyle(tag) {
+            switch(tag) {
+                case '식사': return 'bg-emerald-50 text-emerald-700 border border-emerald-200';
+                case '영양제': return 'bg-pink-50 text-pink-700 border border-pink-200';
+                case '운동': return 'bg-orange-50 text-orange-700 border border-orange-200';
+                case '수면': return 'bg-indigo-50 text-indigo-700 border border-indigo-200';
+                case '수분': return 'bg-cyan-50 text-cyan-700 border border-cyan-200';
+                default: return 'bg-slate-100 text-slate-700';
+            }
+        }
+
+        // Toggle Single Check Item
+        function toggleCheck(id) {
+            const dateKey = getDateKey();
+            if (!checkStates[dateKey]) {
+                checkStates[dateKey] = [];
+            }
+
+            const index = checkStates[dateKey].indexOf(id);
+            if (index > -1) {
+                checkStates[dateKey].splice(index, 1);
+            } else {
+                checkStates[dateKey].push(id);
+            }
+
+            saveToLocalStorage();
+            renderAll();
+        }
+
+        // Reset Today Checklist
+        function resetTodayChecklist() {
+            if (confirm('오늘의 체크 기록을 모두 초기화할까요?')) {
+                const dateKey = getDateKey();
+                checkStates[dateKey] = [];
+                saveToLocalStorage();
+                renderAll();
+            }
+        }
+
+        // Custom Pill Modal Control
+        function togglePillModal(show) {
+            const modal = document.getElementById('pill-modal');
+            if (show) {
+                modal.classList.remove('hidden');
+                document.getElementById('modal-pill-name').focus();
+            } else {
+                modal.classList.add('hidden');
+            }
+        }
+
+        // Submit Custom Pill
+        function submitNewPill() {
+            const nameInput = document.getElementById('modal-pill-name');
+            const timingSelect = document.getElementById('modal-pill-timing');
+            const memoInput = document.getElementById('modal-pill-memo');
+
+            const name = nameInput.value.trim();
+            if (!name) {
+                alert('영양제 이름을 입력해주세요!');
+                return;
+            }
+
+            const timing = timingSelect.value;
+            let timeSlot = 'morning';
+            if (timing === 'lunch-post') timeSlot = 'day';
+            else if (timing === 'night') timeSlot = 'night';
+
+            const newPill = {
+                id: 'custom_pill_' + Date.now(),
+                timing: timing,
+                timeSlot: timeSlot,
+                name: name,
+                memo: memoInput.value.trim() || '매일 복용 영양제',
+                gender: 'all',
+                isCustom: true
+            };
+
+            customPills.push(newPill);
+            nameInput.value = '';
+            memoInput.value = '';
+            togglePillModal(false);
+
+            saveToLocalStorage();
+            renderAll();
+        }
+
+        // Delete Custom Pill
+        function deleteCustomPill(id) {
+            if (confirm('이 영양제를 삭제할까요?')) {
+                customPills = customPills.filter(p => p.id !== id);
+                saveToLocalStorage();
+                renderAll();
+            }
+        }
+
+        // Add Custom General Task
+        function addCustomTask() {
+            const input = document.getElementById('new-task-text');
+            const timeSelect = document.getElementById('new-task-time');
+            const text = input.value.trim();
+
+            if (!text) {
+                alert('루틴 내용을 입력해주세요!');
+                return;
+            }
+
+            const newTask = {
+                id: 'custom_task_' + Date.now(),
+                time: timeSelect.value,
+                category: 'life',
+                gender: 'all',
+                title: text,
+                desc: '사용자 지정 맞춤 루틴',
+                tag: '맞춤',
+                isCustom: true
+            };
+
+            customTasks.push(newTask);
+            input.value = '';
+            saveToLocalStorage();
+            renderAll();
+        }
+
+        // Delete Custom Task
+        function deleteCustomTask(id) {
+            if (confirm('이 맞춤 루틴을 삭제할까요?')) {
+                customTasks = customTasks.filter(item => item.id !== id);
+                saveToLocalStorage();
+                renderAll();
+            }
+        }
+
+        // Confetti effect
+        function triggerConfetti() {
+            if (typeof confetti === 'function') {
+                confetti({
+                    particleCount: 80,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            }
+        }
+
+        // Local Storage Sync
+        function saveToLocalStorage() {
+            localStorage.setItem('daily_vital_checks', JSON.stringify(checkStates));
+            localStorage.setItem('daily_vital_customs', JSON.stringify(customTasks));
+            localStorage.setItem('daily_vital_custom_pills', JSON.stringify(customPills));
+        }
+
+        function loadFromLocalStorage() {
+            const savedChecks = localStorage.getItem('daily_vital_checks');
+            if (savedChecks) {
+                try { checkStates = JSON.parse(savedChecks); } catch(e) {}
+            }
+
+            const savedCustoms = localStorage.getItem('daily_vital_customs');
+            if (savedCustoms) {
+                try { customTasks = JSON.parse(savedCustoms); } catch(e) {}
+            }
+
+            const savedCustomPills = localStorage.getItem('daily_vital_custom_pills');
+            if (savedCustomPills) {
+                try { customPills = JSON.parse(savedCustomPills); } catch(e) {}
+            }
+        }
+
+        // Tab Switching Logic
+        function switchTab(tabId) {
+            const views = ['checklist', 'diet', 'supplement', 'workout', 'sleep'];
+            views.forEach(v => {
+                const el = document.getElementById(`view-${v}`);
+                const btn = document.getElementById(`tab-btn-${v}`);
+                if (v === tabId) {
+                    el.classList.remove('hidden');
+                    btn.className = 'tab-btn px-4 py-2 rounded-xl text-sm font-bold bg-brand-600 text-white shadow-sm flex items-center gap-2';
+                } else {
+                    el.classList.add('hidden');
+                    btn.className = 'tab-btn px-4 py-2 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-100 flex items-center gap-2';
+                }
+            });
+        }
+
+        // =========================================================================
+        // WORKOUT TIMER LOGIC
+        // =========================================================================
+        let timerInterval = null;
+        let timerTotalSeconds = 3000;
+        let timerRemaining = 3000;
+        let isTimerRunning = false;
+
+        function setTimerDuration(seconds, stageName) {
+            pauseTimer();
+            timerTotalSeconds = seconds;
+            timerRemaining = seconds;
+            document.getElementById('timer-stage').innerText = stageName;
+            updateTimerDisplay();
+        }
+
+        function toggleTimer() {
+            if (isTimerRunning) {
+                pauseTimer();
+            } else {
+                startTimer();
+            }
+        }
+
+        function startTimer() {
+            if (timerRemaining <= 0) timerRemaining = timerTotalSeconds;
+            isTimerRunning = true;
+            document.getElementById('timer-toggle-btn').innerHTML = '<i class="fa-solid fa-pause"></i> <span>일시 정지</span>';
+            document.getElementById('timer-toggle-btn').className = 'flex-1 py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-amber-500/30';
+
+            timerInterval = setInterval(() => {
+                timerRemaining--;
+                updateTimerDisplay();
+                if (timerRemaining <= 0) {
+                    pauseTimer();
+                    alert('🎉 운동 완료! 쿨다운 스트레칭으로 마무리해주세요.');
+                    triggerConfetti();
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            isTimerRunning = false;
+            clearInterval(timerInterval);
+            document.getElementById('timer-toggle-btn').innerHTML = '<i class="fa-solid fa-play"></i> <span>타이머 시작</span>';
+            document.getElementById('timer-toggle-btn').className = 'flex-1 py-3 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl transition flex items-center justify-center gap-2 shadow-lg shadow-orange-500/30';
+        }
+
+        function resetTimer() {
+            pauseTimer();
+            timerRemaining = timerTotalSeconds;
+            updateTimerDisplay();
+        }
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(timerRemaining / 60);
+            const secs = timerRemaining % 60;
+            document.getElementById('timer-display').innerText = 
+                `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        // =========================================================================
+        // SLEEP CALCULATOR LOGIC
+        // =========================================================================
+        function calculateSleepTimes() {
+            const wakeVal = document.getElementById('wake-time-input').value;
+            if (!wakeVal) return;
+
+            const [wakeH, wakeM] = wakeVal.split(':').map(Number);
+            const wakeDate = new Date();
+            wakeDate.setHours(wakeH, wakeM, 0, 0);
+
+            const fallAsleepBufferMins = 15;
+            const cycles = [
+                { count: 5, label: '추천 (7.5시간 수면 / 5사이클)', badge: '가장 이상적', color: 'emerald' },
+                { count: 6, label: '충분 (9시간 수면 / 6사이클)', badge: '피로 회복', color: 'indigo' },
+                { count: 4, label: '최소 (6시간 수면 / 4사이클)', badge: '바쁜 날', color: 'amber' }
+            ];
+
+            const resultsContainer = document.getElementById('sleep-results');
+            resultsContainer.innerHTML = '';
+
+            cycles.forEach(c => {
+                const totalMinsNeeded = (c.count * 90) + fallAsleepBufferMins;
+                const bedtime = new Date(wakeDate.getTime() - (totalMinsNeeded * 60 * 1000));
+                
+                const bedH = String(bedtime.getHours()).padStart(2, '0');
+                const bedM = String(bedtime.getMinutes()).padStart(2, '0');
+
+                const cardHtml = `
+                    <div class="p-3.5 bg-white rounded-2xl border ${c.color === 'emerald' ? 'border-emerald-300 ring-2 ring-emerald-100 shadow-sm' : 'border-slate-200'}">
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${c.color === 'emerald' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700'}">${c.badge}</span>
+                        <div class="text-xl font-black text-slate-800 my-1">${bedH}:${bedM} 취침</div>
+                        <p class="text-[11px] text-slate-500">${c.label}</p>
+                    </div>
+                `;
+                resultsContainer.insertAdjacentHTML('beforeend', cardHtml);
+            });
+        }
+    </script>
+</body>
+</html>
