@@ -237,91 +237,6 @@
                     </div>
                 </div>
             </div>
-        </section>
-
-        <!-- ========================================================================= -->
-        <!-- ⭐ SPECIAL SECTION: DAILY PILLBOX CHECKER (매일 영양제 전용 복용함) -->
-        <!-- ========================================================================= -->
-        <section class="bg-white rounded-3xl p-6 sm:p-7 border-2 border-pink-100 shadow-md space-y-5 relative overflow-hidden">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
-                <div class="flex items-center space-x-3">
-                    <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-pink-500 to-rose-400 text-white flex items-center justify-center font-bold text-xl shadow-md shadow-pink-500/20">
-                        <i class="fa-solid fa-pills"></i>
-                    </div>
-                    <div>
-                        <div class="flex items-center gap-2">
-                            <h2 class="text-lg sm:text-xl font-bold text-slate-800">하루 영양제 전용 복용 체크함 (Pill Box)</h2>
-                            <span id="pill-box-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-pink-50 text-pink-700 border border-pink-200">0/0 완료</span>
-                        </div>
-                        <p class="text-xs text-slate-500 mt-0.5">섭취 시간대별로 잊지 말고 영양제를 클릭해 복용을 체크하세요!</p>
-                    </div>
-                </div>
-
-                <!-- Add Custom Pill Quick Button -->
-                <button onclick="togglePillModal(true)" class="inline-flex items-center justify-center gap-2 bg-pink-50 hover:bg-pink-100 text-pink-700 border border-pink-200 text-xs sm:text-sm font-bold px-3.5 py-2 rounded-xl transition shadow-xs">
-                    <i class="fa-solid fa-plus-circle text-pink-600"></i>
-                    <span>+ 내가 먹는 영양제 추가</span>
-                </button>
-            </div>
-
-            <!-- Pill Box 4-Grid by Timing -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                
-                <!-- 1. 기상 직후 공복 -->
-                <div class="bg-amber-50/50 rounded-2xl p-4 border border-amber-100 space-y-3">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-bold text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded-lg flex items-center gap-1">
-                            <i class="fa-regular fa-sun"></i> 기상 직후 (공복)
-                        </span>
-                        <span id="supp-count-morning-empty" class="text-[11px] font-bold text-amber-700">0/0</span>
-                    </div>
-                    <div id="pill-list-morning-empty" class="space-y-2">
-                        <!-- Dynamic Pills -->
-                    </div>
-                </div>
-
-                <!-- 2. 아침 식후 -->
-                <div class="bg-emerald-50/50 rounded-2xl p-4 border border-emerald-100 space-y-3">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-bold text-emerald-800 bg-emerald-100/80 px-2 py-0.5 rounded-lg flex items-center gap-1">
-                            <i class="fa-solid fa-mug-saucer"></i> 아침 식사 직후
-                        </span>
-                        <span id="supp-count-morning-post" class="text-[11px] font-bold text-emerald-700">0/0</span>
-                    </div>
-                    <div id="pill-list-morning-post" class="space-y-2">
-                        <!-- Dynamic Pills -->
-                    </div>
-                </div>
-
-                <!-- 3. 점심 식후 -->
-                <div class="bg-sky-50/50 rounded-2xl p-4 border border-sky-100 space-y-3">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-bold text-sky-800 bg-sky-100/80 px-2 py-0.5 rounded-lg flex items-center gap-1">
-                            <i class="fa-solid fa-sun-bright"></i> 점심 식사 직후
-                        </span>
-                        <span id="supp-count-lunch-post" class="text-[11px] font-bold text-sky-700">0/0</span>
-                    </div>
-                    <div id="pill-list-lunch-post" class="space-y-2">
-                        <!-- Dynamic Pills -->
-                    </div>
-                </div>
-
-                <!-- 4. 취침 1시간 전 -->
-                <div class="bg-indigo-50/50 rounded-2xl p-4 border border-indigo-100 space-y-3">
-                    <div class="flex items-center justify-between">
-                        <span class="text-xs font-bold text-indigo-800 bg-indigo-100/80 px-2 py-0.5 rounded-lg flex items-center gap-1">
-                            <i class="fa-solid fa-moon"></i> 취침 1시간 전
-                        </span>
-                        <span id="supp-count-night" class="text-[11px] font-bold text-indigo-700">0/0</span>
-                    </div>
-                    <div id="pill-list-night" class="space-y-2">
-                        <!-- Dynamic Pills -->
-                    </div>
-                </div>
-
-            </div>
-        </section>
-
         <!-- Navigation Tabs for Views -->
         <div class="flex items-center justify-between border-b border-slate-200 pb-2 overflow-x-auto gap-2">
             <div class="flex space-x-1 sm:space-x-2">
@@ -347,6 +262,87 @@
         <!-- TAB 1: ALL-IN-ONE DAILY CHECKLIST -->
         <!-- ========================================================================= -->
         <div id="view-checklist" class="space-y-6">
+
+            <!-- ⭐ DAILY PILLBOX CHECKER (전체 루틴 체크 내 영양제 전용 복용함) -->
+            <section class="bg-white rounded-3xl p-6 sm:p-7 border-2 border-pink-100 shadow-md space-y-5 relative overflow-hidden">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-pink-500 to-rose-400 text-white flex items-center justify-center font-bold text-xl shadow-md shadow-pink-500/20">
+                            <i class="fa-solid fa-pills"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <h2 class="text-lg sm:text-xl font-bold text-slate-800">하루 영양제 전용 복용 체크함 (Pill Box)</h2>
+                                <span id="pill-box-badge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-pink-50 text-pink-700 border border-pink-200">0/0 완료</span>
+                            </div>
+                            <p class="text-xs text-slate-500 mt-0.5">섭취 시간대별로 잊지 말고 영양제를 클릭해 복용을 체크하세요!</p>
+                        </div>
+                    </div>
+
+                    <!-- Add Custom Pill Quick Button -->
+                    <button onclick="togglePillModal(true)" class="inline-flex items-center justify-center gap-2 bg-pink-50 hover:bg-pink-100 text-pink-700 border border-pink-200 text-xs sm:text-sm font-bold px-3.5 py-2 rounded-xl transition shadow-xs">
+                        <i class="fa-solid fa-plus-circle text-pink-600"></i>
+                        <span>+ 내가 먹는 영양제 추가</span>
+                    </button>
+                </div>
+
+                <!-- Pill Box 4-Grid by Timing -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    
+                    <!-- 1. 기상 직후 공복 -->
+                    <div class="bg-amber-50/50 rounded-2xl p-4 border border-amber-100 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-amber-800 bg-amber-100/80 px-2 py-0.5 rounded-lg flex items-center gap-1">
+                                <i class="fa-regular fa-sun"></i> 기상 직후 (공복)
+                            </span>
+                            <span id="supp-count-morning-empty" class="text-[11px] font-bold text-amber-700">0/0</span>
+                        </div>
+                        <div id="pill-list-morning-empty" class="space-y-2">
+                            <!-- Dynamic Pills -->
+                        </div>
+                    </div>
+
+                    <!-- 2. 아침 식후 -->
+                    <div class="bg-emerald-50/50 rounded-2xl p-4 border border-emerald-100 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-emerald-800 bg-emerald-100/80 px-2 py-0.5 rounded-lg flex items-center gap-1">
+                                <i class="fa-solid fa-mug-saucer"></i> 아침 식사 직후
+                            </span>
+                            <span id="supp-count-morning-post" class="text-[11px] font-bold text-emerald-700">0/0</span>
+                        </div>
+                        <div id="pill-list-morning-post" class="space-y-2">
+                            <!-- Dynamic Pills -->
+                        </div>
+                    </div>
+
+                    <!-- 3. 점심 식후 -->
+                    <div class="bg-sky-50/50 rounded-2xl p-4 border border-sky-100 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-sky-800 bg-sky-100/80 px-2 py-0.5 rounded-lg flex items-center gap-1">
+                                <i class="fa-solid fa-sun-bright"></i> 점심 식사 직후
+                            </span>
+                            <span id="supp-count-lunch-post" class="text-[11px] font-bold text-sky-700">0/0</span>
+                        </div>
+                        <div id="pill-list-lunch-post" class="space-y-2">
+                            <!-- Dynamic Pills -->
+                        </div>
+                    </div>
+
+                    <!-- 4. 취침 1시간 전 -->
+                    <div class="bg-indigo-50/50 rounded-2xl p-4 border border-indigo-100 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-indigo-800 bg-indigo-100/80 px-2 py-0.5 rounded-lg flex items-center gap-1">
+                                <i class="fa-solid fa-moon"></i> 취침 1시간 전
+                            </span>
+                            <span id="supp-count-night" class="text-[11px] font-bold text-indigo-700">0/0</span>
+                        </div>
+                        <div id="pill-list-night" class="space-y-2">
+                            <!-- Dynamic Pills -->
+                        </div>
+                    </div>
+
+                </div>
+            </section>
             
             <!-- Quick Add Custom Task Bar -->
             <div class="bg-white p-3.5 rounded-2xl border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center gap-3">
